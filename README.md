@@ -1,6 +1,6 @@
-## My Project
+## Enterprise Chatbots using RAG with Amazon Kendra
 
-TODO: Fill this README out!
+TODO: Fill this README out
 
 Be sure to:
 
