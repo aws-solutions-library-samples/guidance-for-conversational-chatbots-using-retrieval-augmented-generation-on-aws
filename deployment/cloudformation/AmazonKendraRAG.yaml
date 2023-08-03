@@ -1,0 +1,552 @@
+##This CloudFormation template deploys sample RAG architecture with Amazon Kendra + LLM + Lex 
+## 1.Creates Amazon Kendra index and ingests sample documents through webcrawler
+## 2.Creates Large Language Model (LLM) endpoint on Amazon Sagemaker
+## 3.Creates Amazon lex bot with 2 intents .Fallback intent is set to trigger Lambda(Orchestrator)
+## 4.Creates Lambda(Orchestrator) which integrates Amazon Kendra,Amazon Lex,LLM
+##
+##The output of the CloudFormation template shows the Kendra index id,the AWS region, LLM endpoint, Lambda Function, 
+##DynomoDB table .It takes about 30 minutes to create an Amazon Kendra index and about 15 minutes more to crawl 
+##and index the content of these webpages to the index.Takes about 20 min to create LLM endpoint on sagemaker
+##Hence you might need to wait for about 45 minutes after launching the CloudFormation stack
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Template Amazon Kendra RAG.
+Parameters:
+  LLMModelSelected:
+    Description: Pick the LLM model (FLAN,FALCON) to deploy and use for the chatbot.
+    Type: String
+    Default: FLAN
+    AllowedValues:
+      - FLAN
+      - FALCON
+  LambdaIAMRoleName:
+    Default: LambdaLLMIAMRole
+    Type: String
+    Description: Name of IAM role for Lambda,The role name must _not_ already exist in your AWS account.
+  SageMakerIAMRoleName:
+    Default: "SageMakerLLMIAMRole" 
+    Type: String
+    Description: Name of IAM role to create Sagemaker Endpoint. The role name must _not_ already exist in your AWS account.
+  ConversationHistoryTable:
+    Default: ConversationHistoryTable
+    Type: String
+    Description: Name of the Conversation History Table. The table name must _not_ already exist in your AWS account.
+
+Mappings:
+  ModelMap:
+    FLAN:
+      LambdaCodeS3Bucket : qna-llm-code
+      LambdaCodeS3Key : simple_lambda_orchestrator.zip
+      LangChainLayerS3Bucket: qna-llm-code
+      LangChainLayerS3Key : LangChainLayer.zip
+      LambdaFunctionName : simple_lambda_orchestrator
+      LambdaHandlerPath : lambda_function.lambda_handler
+      ModelName : 'flan-t5-xxl-model'
+      EndpointName : 'flan-t5-xxl-endpoint'
+      #ModelDataUrl : s3://jumpstart-cache-prod-${AWS::Region}/huggingface-infer/prepack/v1.0.0/infer-prepack-huggingface-llm-falcon-7b-instruct-bf16.tar.gz
+      ModelDataUrl : huggingface-infer/prepack/v1.0.0/infer-prepack-huggingface-llm-falcon-7b-instruct-bf16.tar.gz
+      #Image : 763104351884.dkr.ecr.${AWS::Region}.amazonaws.com/pytorch-inference:1.12.0-gpu-py38
+      Image : amazonaws.com/pytorch-inference:1.12.0-gpu-py38
+    FALCON:
+      LambdaCodeS3Bucket : qna-llm-code
+      LambdaCodeS3Key : simple_lambda_orchestrator.zip
+      LangChainLayerS3Bucket: qna-llm-code
+      LangChainLayerS3Key : LangChainLayer.zip
+      LambdaFunctionName : simple_lambda_orchestrator
+      ModelName : 'falcon-7b-instruct-bf16'
+      EndpointName : 'jumpstart-dft-hf-llm-falcon-7b'
+      #ModelDataUrl : s3://jumpstart-cache-prod-${AWS::Region}/huggingface-infer/prepack/v1.0.1/infer-prepack-huggingface-text2text-flan-t5-xxl-bnb-int8.tar.gz
+      ModelDataUrl : huggingface-infer/prepack/v1.0.1/infer-prepack-huggingface-text2text-flan-t5-xxl-bnb-int8.tar.gz
+      #Image : 763104351884.dkr.ecr.${AWS::Region}.amazonaws.com/huggingface-pytorch-tgi-inference:2.0.0-tgi0.8.2-gpu-py39-cu118-ubuntu20.04
+      Image : amazonaws.com/huggingface-pytorch-tgi-inference:2.0.0-tgi0.8.2-gpu-py39-cu118-ubuntu20.04
+
+Resources:
+  # Create the Role needed to create a Kendra Index
+  KendraIndexRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ''
+            Effect: Allow
+            Principal:
+              Service: kendra.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Resource: '*'
+                Condition:
+                  StringEquals:
+                    'cloudwatch:namespace': 'Kendra'
+                Action:
+                  - 'cloudwatch:PutMetricData'
+              - Effect: Allow
+                Resource: '*'
+                Action: 'logs:DescribeLogGroups'
+              - Effect: Allow
+                Resource: !Sub
+                  - 'arn:aws:logs:${region}:${account}:log-group:/aws/kendra/*'
+                  - region: !Ref 'AWS::Region'
+                    account: !Ref 'AWS::AccountId'
+                Action: 'logs:CreateLogGroup'
+              - Effect: Allow
+                Resource: !Sub
+                  - 'arn:aws:logs:${region}:${account}:log-group:/aws/kendra/*:log-stream:*'
+                  - region: !Ref 'AWS::Region'
+                    account: !Ref 'AWS::AccountId'
+                Action: 
+                  - 'logs:DescribeLogStreams'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+          PolicyName: !Join
+            - ''
+            - - !Ref 'AWS::StackName'
+              - '-DocsKendraIndexPolicy'
+      RoleName: !Join
+        - ''
+        - - !Ref 'AWS::StackName'
+          - '-DocsKendraIndexRole'
+      
+  # Create the Kendra Index
+  DocsKendraIndex:
+    Type: 'AWS::Kendra::Index'
+    Properties:
+      Name: !Join
+        - ''
+        - - !Ref 'AWS::StackName'
+          - '-Index'
+      Edition: 'DEVELOPER_EDITION'
+      RoleArn: !GetAtt KendraIndexRole.Arn
+
+  # Create the Role needed to attach the Webcrawler Data Source
+  KendraDSRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ''
+            Effect: Allow
+            Principal:
+              Service: kendra.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Resource: !Sub
+                  - 'arn:aws:kendra:${region}:${account}:index/${index}'
+                  - region: !Ref 'AWS::Region'
+                    account: !Ref 'AWS::AccountId'
+                    index: !GetAtt DocsKendraIndex.Id
+                Action:
+                  - 'kendra:BatchPutDocument'
+                  - 'kendra:BatchDeleteDocument'
+          PolicyName: !Join
+            - ''
+            - - !Ref 'AWS::StackName'
+              - '-DocsDSPolicy'
+      RoleName: !Join
+        - ''
+        - - !Ref 'AWS::StackName'
+          - '-DocsDSRole'
+  
+  # Docs Data Source
+  KendraDocsDS:
+    Type: 'AWS::Kendra::DataSource'
+    Properties: 
+      DataSourceConfiguration: 
+        WebCrawlerConfiguration:
+          UrlInclusionPatterns:
+            - '.*https://docs.aws.amazon.com/lex/.*'
+            - '.*https://docs.aws.amazon.com/kendra/.*'
+            - '.*https://docs.aws.amazon.com/sagemaker/.*'
+          Urls:
+             SiteMapsConfiguration:
+               SiteMaps:
+                 - 'https://docs.aws.amazon.com/lex/latest/dg/sitemap.xml'
+                 - 'https://docs.aws.amazon.com/kendra/latest/dg/sitemap.xml'
+                 - 'https://docs.aws.amazon.com/sagemaker/latest/dg/sitemap.xml'
+      IndexId: !GetAtt DocsKendraIndex.Id
+      Name: 'KendraDocsDS'
+      RoleArn: !GetAtt KendraDSRole.Arn
+      Type: 'WEBCRAWLER'
+  
+  # AWS role for Lambda to sync data source 
+  DataSourceSyncLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Resource: !Sub
+                  - 'arn:aws:kendra:${region}:${account}:index/${index}*'
+                  - region: !Ref 'AWS::Region'
+                    account: !Ref 'AWS::AccountId'
+                    index: !GetAtt DocsKendraIndex.Id
+                Action:
+                  - 'kendra:StartDataSourceSyncJob'
+          PolicyName: DataSourceSyncLambdaPolicy
+  
+  # Lambda to sync data source 
+  DataSourceSyncLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.lambda_handler
+      Runtime: python3.8
+      Role: !GetAtt 'DataSourceSyncLambdaRole.Arn'
+      Timeout: 900
+      MemorySize: 1024
+      Code:
+        ZipFile: |
+
+          # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+          # SPDX-License-Identifier: MIT-0
+          
+          import json
+          import logging
+          import boto3
+          import cfnresponse
+          import random
+          import os
+          
+          logger = logging.getLogger()
+          logger.setLevel(logging.INFO)
+          
+          INDEX_ID = os.environ['INDEX_ID']
+          DS_ID = os.environ['DS_ID']
+          AWS_REGION = os.environ['AWS_REGION']
+          KENDRA = boto3.client('kendra')
+          
+          def start_data_source_sync(dsId, indexId):
+              logger.info(f"start_data_source_sync(dsId={dsId}, indexId={indexId})")
+              resp = KENDRA.start_data_source_sync_job(Id=dsId, IndexId=indexId)
+              logger.info(f"response:" + json.dumps(resp))
+          
+          def lambda_handler(event, context):
+              logger.info("Received event: %s" % json.dumps(event))
+              start_data_source_sync(DS_ID, INDEX_ID)
+              status = cfnresponse.SUCCESS
+              cfnresponse.send(event, context, status, {}, None)
+              return status
+
+      Environment:
+        Variables:
+          INDEX_ID: !GetAtt DocsKendraIndex.Id
+          DS_ID: !GetAtt KendraDocsDS.Id 
+  
+  DataSourceSync:
+    Type: Custom::DataSourceSync
+    DependsOn: 
+      - DocsKendraIndex
+      - KendraDocsDS
+    Properties:
+      ServiceToken: !GetAtt DataSourceSyncLambda.Arn 
+  
+  # IAM role for Langchain Lambda Orchestrator
+  LambdaIAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Ref LambdaIAMRoleName
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess 
+  
+  # IAM policiy associated with for Langchain Lambda Orchestrator IAM role
+  LambdaExecutionPolicy:
+      Type: 'AWS::IAM::Policy'
+      Properties:
+        PolicyDocument:
+          Statement:
+            - Effect: Allow
+              Action:
+                - sagemaker:InvokeEndpoint
+              Resource: !Sub
+                - "arn:aws:sagemaker:${region}:${account}:endpoint/flan-t5-xxl-endpoint"
+                - region: !Ref 'AWS::Region'
+                  account: !Ref 'AWS::AccountId'
+            - Effect: Allow
+              Action:
+                - kendra:BatchQuery
+                - kendra:Query
+              Resource: !GetAtt DocsKendraIndex.Arn
+            - Effect : Allow
+              Action:
+                - dynamodb:BatchGet*
+                - dynamodb:DescribeStream
+                - dynamodb:DescribeTable
+                - dynamodb:Get*
+                - dynamodb:Query
+                - dynamodb:Scan
+                - dynamodb:BatchWrite*
+                - dynamodb:CreateTable
+                - dynamodb:Delete*
+                - dynamodb:Update*
+                - dynamodb:PutItem
+              Resource: 
+                - Fn::Sub: "arn:aws:dynamodb:*:*:table/${ConversationHistoryTable}"
+          Version: 2012-10-17
+        PolicyName: LambdaExecutionPolicy
+        Roles:
+          - !Ref LambdaIAMRole
+  
+  # IAM role for Sagemaker Endpoint
+  SagemakerIAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Ref SageMakerIAMRoleName
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSageMakerFullAccess
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+              - sagemaker.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: "/"
+  
+  # Langchain Lambda Orchestrator integrating Kendra ,LLM, Lex
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !FindInMap [ModelMap, !Ref LLMModelSelected, LambdaFunctionName]
+      Description: Lambda Orchestration function for integrating Amazon Kendra,Large Language model and Amazon Lex.
+      Runtime: python3.9
+      Code:
+        S3Bucket: !FindInMap [ModelMap, !Ref LLMModelSelected, LambdaCodeS3Bucket]
+        S3Key: !FindInMap [ModelMap, !Ref LLMModelSelected, LambdaCodeS3Key]
+      Handler: !FindInMap [ModelMap, !Ref LLMModelSelected, LambdaHandlerPath]
+      MemorySize: 1024
+      Timeout: 120
+      Role: !GetAtt LambdaIAMRole.Arn
+      Layers:
+      - !Ref LambdaLayer
+      Environment:
+        Variables:
+          KENDRA_INDEX: !GetAtt DocsKendraIndex.Id
+          KENDRA_REGION: !Ref AWS::Region
+          MODEL_ENDPOINT: !GetAtt LLMEndpoint.EndpointName
+    DependsOn:
+      - LambdaExecutionPolicy
+      - LambdaIAMRole
+  
+  # Permission to allow newly created Lex bot to trigger lambda
+  LexLambdaPermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      FunctionName: !FindInMap [ModelMap, !Ref LLMModelSelected, LambdaFunctionName]
+      Action: "lambda:invokeFunction"
+      Principal: "lexv2.amazonaws.com"
+      SourceAccount: !Ref AWS::AccountId
+      SourceArn: 
+        Fn::Sub: "arn:aws:lex:${AWS::Region}:${AWS::AccountId}:bot-alias/${KendraLLMRAGBot}/TSTALIASID"
+    DependsOn: LambdaFunction
+  
+  # Lambda Layer containing Langchain library, latest Kendra Retrive API etc.
+  LambdaLayer:
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      CompatibleArchitectures:
+        - x86_64
+      CompatibleRuntimes:
+        - python3.9
+      Content:
+        S3Bucket: !FindInMap [ModelMap, !Ref LLMModelSelected, LangChainLayerS3Bucket]
+        S3Key: !FindInMap [ModelMap, !Ref LLMModelSelected, LangChainLayerS3Key]
+      Description: This is layer for LanChain library
+      LayerName:  LangChainLayer
+  
+  # Large Language model
+  LLMModel:
+      Type: 'AWS::SageMaker::Model'
+      Properties:
+        ModelName: !Sub 
+          - '${model_name}-${RandomGUID}'
+          - model_name : !FindInMap [ModelMap, !Ref LLMModelSelected, ModelName]
+            RandomGUID: !Select [0, !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId ]]]]
+        PrimaryContainer:
+          ModelDataUrl: !Sub
+          - 's3://jumpstart-cache-prod-${AWS::Region}/${modelzip}'
+          - modelzip : !FindInMap [ModelMap, !Ref LLMModelSelected, ModelDataUrl]
+          Image: !Sub
+          - '763104351884.dkr.ecr.${AWS::Region}.${Imagepart}'
+          - Imagepart: !FindInMap [ModelMap, !Ref LLMModelSelected, Image]
+          Environment:
+            TS_DEFAULT_WORKERS_PER_MODEL: '1'
+          Mode: SingleModel
+        ExecutionRoleArn: !GetAtt SagemakerIAMRole.Arn
+  
+  # Large Language model deployment configuration
+  LLMEndpointConfig:
+    Type: "AWS::SageMaker::EndpointConfig"
+    Properties:
+      EndpointConfigName: !Sub
+        - '${model_name}-endpoint-${RandomGUID}'
+        - model_name : !FindInMap [ModelMap, !Ref LLMModelSelected, ModelName]
+          RandomGUID: !Select [0, !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId ]]]]
+      ProductionVariants:
+        - InitialInstanceCount: 1
+          InitialVariantWeight: 1.0
+          InstanceType: "ml.g5.2xlarge"
+          ModelName: !GetAtt LLMModel.ModelName
+          VariantName: !GetAtt LLMModel.ModelName
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W1200
+            reason: Solution does not have KMS encryption enabled by default
+  
+  # LLM Endpoint where LLM will get deployed with deployment configurations
+  LLMEndpoint:
+    Type: "AWS::SageMaker::Endpoint"
+    Properties:
+      EndpointName: !FindInMap [ModelMap, !Ref LLMModelSelected, EndpointName]
+      EndpointConfigName: !GetAtt LLMEndpointConfig.EndpointConfigName
+  
+  # IAM role for Lex Bot
+  LexBotIAMRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: 2012-10-17
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - "lex.amazonaws.com"
+              Action:
+                - "sts:AssumeRole"
+        Policies:
+          - PolicyName: LexBotLambdaInvokePolicy
+            PolicyDocument:
+              Version: 2012-10-17
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - "lambda:InvokeFunction"
+                  Resource: !GetAtt LambdaFunction.Arn                  
+  
+  BotRuntimeRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lexv2.amazonaws.com
+              Action:
+                - "sts:AssumeRole"
+        Path: "/"
+        Policies:
+          - PolicyName: LexRuntimeRolePolicy
+            PolicyDocument:
+              Version: 2012-10-17
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - "polly:SynthesizeSpeech"
+                    - "comprehend:DetectSentiment"
+                  Resource: "*"
+  
+  # Lex Bot with Intents and code hook to Langchain lambda orchestrator particularly for Fallback Intent
+  KendraLLMRAGBot:
+    DependsOn: BotRuntimeRole
+    Type: 'AWS::Lex::Bot'
+    Properties:
+      Name: KendraLLMRAGBot
+      RoleArn: !GetAtt 
+        - BotRuntimeRole
+        - Arn
+      DataPrivacy:
+        ChildDirected: false
+      IdleSessionTTLInSeconds: 300
+      Description: Amazon Kendra LLM RAG Bot
+      AutoBuildBotLocales: true
+      TestBotAliasSettings:
+        BotAliasLocaleSettings:
+          - LocaleId: en_US
+            BotAliasLocaleSetting:
+              Enabled: true
+              CodeHookSpecification:
+                LambdaCodeHook:
+                  CodeHookInterfaceVersion: '1.0'
+                  LambdaArn: !GetAtt 
+                    - LambdaFunction
+                    - Arn
+      BotLocales:
+        - LocaleId: en_US
+          Description: english bot
+          NluConfidenceThreshold: 0.4
+          VoiceSettings:
+            VoiceId: Ivy
+          Intents:
+            - Name: greeting_intent
+              Description: this is hello intent
+              SampleUtterances:
+                - Utterance: hi
+                - Utterance: hello
+              FulfillmentCodeHook:
+                Enabled: true
+            - Name: FallbackIntent
+              Description: Default intent when no other intent matches
+              FulfillmentCodeHook:
+                Enabled: true
+              ParentIntentSignature: AMAZON.FallbackIntent
+  
+  # Table to maintain conversation history
+  ConversationHistory: 
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      BillingMode: PAY_PER_REQUEST 
+      AttributeDefinitions:
+        - AttributeName: SessionId
+          AttributeType: N
+      KeySchema: 
+        - AttributeName: SessionId
+          KeyType: HASH
+      TableName: !Ref ConversationHistoryTable
+
+Outputs:
+  AWSRegion:
+    Value: !Ref 'AWS::Region'
+  LLMEndpointName:
+    Description: Name of the LLM endpoint
+    Value: !GetAtt LLMEndpoint.EndpointName
+  KendraIndexID:
+    Value: !GetAtt DocsKendraIndex.Id
+  LambdaFunction:
+    Description: Lambda Function
+    Value: !Ref LambdaFunction
+  ConversationHistoryTable:
+    Description: Table name of the newly created Conversational Memory DynamoDB 
+    Value: !Ref ConversationHistory
+
+
