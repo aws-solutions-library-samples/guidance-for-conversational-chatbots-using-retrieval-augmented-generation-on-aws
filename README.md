@@ -4,7 +4,7 @@
 
 1. [Overview](#1-overview)
 2. [Architecture Details](#2-architecture-details)
-3. [Prerequisites](#3-Prerequisites)
+3. [Prerequisites](#3-prerequisites)
 4. [Quick Start](#4-quick-start) 
 5. [Advanced Configuration](#5-advanced-configuration)  
     5.1. [Optional CloudFormation Parameters](#31-optional-cloudformation-parameters)      
@@ -20,14 +20,14 @@
 
 ## 1. Overview
 
-To restrict the GenAI application responses to company data only, we need to use a technique called Retrieval Augmented Generation (RAG). An application using the RAG approach retrieves information most relevant to the user’s request from the enterprise knowledge base or content, bundles it as context along with the user’s request as a prompt, and then sends it to the LLM to get a GenAI response. LLMs have limitations around the maximum word count for the input prompt, therefore choosing the right passages among thousands or millions of documents in the enterprise, has a direct impact on the LLM’s accuracy.
+In this implementation we demonstrate how to implement a RAG workflow by combining the capabilities of Amazon Kendra with LLMs to create state-of-the-art GenAI ChatBot providing conversational experiences over your enterprise content. 
 
-In this implementation we demonstrate how to implement a RAG workflow by combining the capabilities of Amazon Kendra with LLMs to create state-of-the-art GenAI ChatBot providing conversational experiences over your enterprise content. After Amazon Bedrock launches, we will publish a follow-up post showing how to implement similar GenAI applications using Amazon Bedrock, so stay tuned.
+To restrict the GenAI application responses to company data only, we need to use a technique called Retrieval Augmented Generation (RAG). An application using the RAG approach retrieves information most relevant to the user’s request from the enterprise knowledge base or content, bundles it as context along with the user’s request as a prompt, and then sends it to the LLM to get a GenAI response. LLMs have limitations around the maximum word count for the input prompt, therefore choosing the right passages among thousands or millions of documents in the enterprise, has a direct impact on the LLM’s accuracy.
 
 Detailed benifits of RAG implementation are published in this popular blog [Quickly build high-accuracy Generative AI applications on enterprise data using Amazon Kendra, LangChain, and large language models](https://aws.amazon.com/blogs/machine-learning/quickly-build-high-accuracy-generative-ai-applications-on-enterprise-data-using-amazon-kendra-langchain-and-large-language-models/), 
 and it has some of the code sample too in this [GitHub](https://github.com/aws-samples/amazon-kendra-langchain-extensions/tree/main/kendra_retriever_samples) repository, 
 
-In this particular repository we are goint to provide implentation detaisl to deploy a  serverless chatbot which can scale to sver lauser 
+In this particular repository we are goint to provide implementation details to deploy a  serverless chatbot which can scale to sver lauser 
 maintain conversational memory 
 provide detaisl links
 provide variety of orchestrator and also provides multiple ways Lmbda implementation 
@@ -44,25 +44,26 @@ ability to decide whether to call rag or other
 
 The workflow includes the following steps:
 
-    1. Financial documents and agreements are stored on Amazon S3, and ingested to an Amazon Kendra index using the S3 data source connector.
+1. Financial documents and agreements are stored on Amazon S3, and ingested to an Amazon Kendra index using the S3 data source connector.
 
-    2. The LLM is hosted on a SageMaker endpoint.
+2. The LLM is hosted on a SageMaker endpoint.
 
-    3. An Amazon Lex chatbot is used to interact with the user via the Amazon Lex web UI.
+3. An Amazon Lex chatbot is used to interact with the user via the Amazon Lex web UI.
 
-    4. The solution uses an AWS Lambda function with LangChain to orchestrate between Amazon Kendra, Amazon Lex, and the LLM.
+4. The Amazon DynamoDB is used to hold conversational memory.
 
-    5. When users ask the Amazon Lex chatbot for answers from a financial document, Amazon 
-    
-    6. Lex calls the LangChain orchestrator to fulfill the request.
+5. The solution uses an AWS Lambda function with LangChain to orchestrate between Amazon Kendra, Amazon DynamoDB, Amazon Lex, and the LLM.
 
-    7. Based on the query, the LangChain orchestrator pulls the relevant financial records and paragraphs from Amazon Kendra.
+6. When users ask the Amazon Lex chatbot for answers from a financial document, Amazon Lex calls the LangChain orchestrator to fulfill the request.
 
-    8. The LangChain orchestrator provides these relevant records to the LLM along with the query and relevant prompt to carry out the required activity.
+7. Based on the query, the LangChain orchestrator pulls the relevant financial records and paragraphs from Amazon Kendra or pull the information from conversational memory in DynamoDB.
 
-    9. The LLM processes the request from the LangChain orchestrator and returns the result.
+8. The LangChain orchestrator provides these relevant records to the LLM along with the query and relevant prompt to carry out the required activity.
 
-    10. The LangChain orchestrator gets the result from the LLM and sends it to the end-user through the Amazon Lex chatbot.
+9. The LLM processes the request from the LangChain orchestrator and returns the result.
+
+10. The LangChain orchestrator gets the result from the LLM and sends it to the end-user through the Amazon Lex chatbot.
+
 
 ## 3. Prerequisites
 You need the following to be installed on your local machine to access the EKS cluster and 
