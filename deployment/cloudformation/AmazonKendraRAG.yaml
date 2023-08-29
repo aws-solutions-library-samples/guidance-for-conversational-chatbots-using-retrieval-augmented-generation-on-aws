@@ -35,10 +35,10 @@ Parameters:
 Mappings:
   ModelMap:
     FLAN:
-      LambdaCodeS3Bucket : qna-llm-code
-      LambdaCodeS3Key : simple_lambda_orchestrator.zip
-      LangChainLayerS3Bucket: qna-llm-code
-      LangChainLayerS3Key : LangChainLayer.zip
+      LambdaCodeS3Bucket : personalize-solution-staging-us-east-1
+      LambdaCodeS3Key : kendra-RAG/simple_lambda_orchestrator.zip
+      LangChainLayerS3Bucket: personalize-solution-staging-us-east-1
+      LangChainLayerS3Key : kendra-RAG/LangChainLayer.zip
       LambdaFunctionName : simple_lambda_orchestrator
       LambdaHandlerPath : lambda_function.lambda_handler
       ModelName : 'flan-t5-xxl-model'
@@ -48,10 +48,10 @@ Mappings:
       #Image : 763104351884.dkr.ecr.${AWS::Region}.amazonaws.com/pytorch-inference:1.12.0-gpu-py38
       Image : amazonaws.com/pytorch-inference:1.12.0-gpu-py38
     FALCON:
-      LambdaCodeS3Bucket : qna-llm-code
-      LambdaCodeS3Key : simple_lambda_orchestrator.zip
-      LangChainLayerS3Bucket: qna-llm-code
-      LangChainLayerS3Key : LangChainLayer.zip
+      LambdaCodeS3Bucket : personalize-solution-staging-us-east-1
+      LambdaCodeS3Key : kendra-RAG/simple_lambda_orchestrator.zip
+      LangChainLayerS3Bucket: personalize-solution-staging-us-east-1
+      LangChainLayerS3Key : kendra-RAG/LangChainLayer.zip
       LambdaFunctionName : simple_lambda_orchestrator
       ModelName : 'falcon-7b-instruct-bf16'
       EndpointName : 'jumpstart-dft-hf-llm-falcon-7b'
