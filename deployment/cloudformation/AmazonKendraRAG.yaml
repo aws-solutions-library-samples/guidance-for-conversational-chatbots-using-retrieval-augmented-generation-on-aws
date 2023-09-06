@@ -44,7 +44,7 @@ Mappings:
       ModelName : 'flan-t5-xxl-model'
       EndpointName : 'flan-t5-xxl-endpoint'
       #ModelDataUrl : s3://jumpstart-cache-prod-${AWS::Region}/huggingface-infer/prepack/v1.0.0/infer-prepack-huggingface-llm-falcon-7b-instruct-bf16.tar.gz
-      ModelDataUrl : huggingface-infer/prepack/v1.0.0/infer-prepack-huggingface-llm-falcon-7b-instruct-bf16.tar.gz
+      ModelDataUrl : huggingface-infer/prepack/v1.0.1/infer-prepack-huggingface-text2text-flan-t5-xxl-bnb-int8.tar.gz
       #Image : 763104351884.dkr.ecr.${AWS::Region}.amazonaws.com/pytorch-inference:1.12.0-gpu-py38
       Image : amazonaws.com/pytorch-inference:1.12.0-gpu-py38
     FALCON:
@@ -56,7 +56,7 @@ Mappings:
       ModelName : 'falcon-7b-instruct-bf16'
       EndpointName : 'jumpstart-dft-hf-llm-falcon-7b'
       #ModelDataUrl : s3://jumpstart-cache-prod-${AWS::Region}/huggingface-infer/prepack/v1.0.1/infer-prepack-huggingface-text2text-flan-t5-xxl-bnb-int8.tar.gz
-      ModelDataUrl : huggingface-infer/prepack/v1.0.1/infer-prepack-huggingface-text2text-flan-t5-xxl-bnb-int8.tar.gz
+      ModelDataUrl : huggingface-infer/prepack/v1.0.0/infer-prepack-huggingface-llm-falcon-7b-instruct-bf16.tar.gz
       #Image : 763104351884.dkr.ecr.${AWS::Region}.amazonaws.com/huggingface-pytorch-tgi-inference:2.0.0-tgi0.8.2-gpu-py39-cu118-ubuntu20.04
       Image : amazonaws.com/huggingface-pytorch-tgi-inference:2.0.0-tgi0.8.2-gpu-py39-cu118-ubuntu20.04
 
