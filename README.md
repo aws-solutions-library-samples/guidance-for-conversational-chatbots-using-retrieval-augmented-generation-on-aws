@@ -1,15 +1,17 @@
-# AWS Batch Architecture for Protein Folding and Design
+# Guidance for Conversational Chatbots using Retrieval Augmented Generation (RAG) on AWS
 
 ## Contents
 
 1. [Overview](#1-overview)
 2. [Architecture Details](#2-architecture-details)
+3. [Disclaimer]
 3. [Prerequisites](#3-prerequisites)
 4. [Quick Start](#4-quick-start) 
 5. [Advanced Configuration](#5-advanced-configuration)  
     5.1. [Optional CloudFormation Parameters](#31-optional-cloudformation-parameters)      
 6. [Module Information](#6-module-information)  
     6.1 [LangChain](#61-LangChain)
+    6.2 [cloudfront]
 
 
 7. [FAQ](#6-faq)
