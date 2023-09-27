@@ -10,8 +10,8 @@
 6. [Advanced Configuration](#6-advanced-configuration)  
     6.1. [Optional CloudFormation Parameters](#61-optional-cloudformation-parameters)      
 7. [Module Information](#7-module-information)  
-    7.1 [LangChain](#71-LangChain)
-    7.2 [cloudfront]
+    7.1 [LangChain](#71-langChain)
+    7.2 [Cloudfront](#72-cloudfront)
 8. [FAQ](#8-faq)
 9. [Security](#9-security)
 10. [License](#10-license)
