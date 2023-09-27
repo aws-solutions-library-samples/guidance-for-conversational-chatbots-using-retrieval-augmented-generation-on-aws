@@ -4,19 +4,17 @@
 
 1. [Overview](#1-overview)
 2. [Architecture Details](#2-architecture-details)
-3. [Disclaimer]
-3. [Prerequisites](#3-prerequisites)
-4. [Quick Start](#4-quick-start) 
-5. [Advanced Configuration](#5-advanced-configuration)  
-    5.1. [Optional CloudFormation Parameters](#31-optional-cloudformation-parameters)      
-6. [Module Information](#6-module-information)  
-    6.1 [LangChain](#61-LangChain)
-    6.2 [cloudfront]
-
-
-7. [FAQ](#6-faq)
-8. [Security](#7-security)
-9. [License](#8-license)
+3. [Disclaimer](#3-disclaimer)
+4. [Prerequisites](#4-prerequisites)
+5. [Quick Start](#5-quick-start) 
+6. [Advanced Configuration](#6-advanced-configuration)  
+    6.1. [Optional CloudFormation Parameters](#61-optional-cloudformation-parameters)      
+7. [Module Information](#7-module-information)  
+    7.1 [LangChain](#71-LangChain)
+    7.2 [cloudfront]
+8. [FAQ](#8-faq)
+9. [Security](#9-security)
+10. [License](#10-license)
 
 -----
 
@@ -66,8 +64,9 @@ The workflow includes the following steps:
 
 10. The LangChain orchestrator gets the result from the LLM and sends it to the end-user through the Amazon Lex chatbot.
 
+## 3. Disclaimer
 
-## 3. Prerequisites
+## 4. Prerequisites
 You need the following to be installed on your local machine to access the EKS cluster and 
 
 - Premission to create IAM role , DynamoDB,deploy Kendra Lex CloudFront, host files in S3
@@ -85,7 +84,7 @@ Administrator and Programmatic access
 
 - Git security credentials.
 
-## 4. Quick Start
+## 5. Quick Start
 
 1. Choose **Launch Stack** and (if prompted) log into your AWS account:
 
@@ -113,9 +112,9 @@ Web UI
 
 -----
 
-## 5. Advanced Configuration
+## 6. Advanced Configuration
 
-### 5.1. Optional CloudFormation Parameters
+### 6.1. Optional CloudFormation Parameters
 
 - Pick and choos ethe kendra index developer edition and enterprise edition 
 - Pick and choose the LLM
@@ -129,7 +128,7 @@ To remove all remaining data, browse to the S3 console and delete the S3 bucket 
 
 -----
 
-## 6. Module Information
+## 7. Module Information
 
 ### 6.1. LangChain
 
@@ -138,7 +137,7 @@ Please visit [amazon-kendra-langchain-extensions Public
 
 (https://python.langchain.com/docs/modules/data_connection/retrievers/integrations/amazon_kendra_retriever)
 
-## 6. FAQ
+## 8. FAQ
 
 Q: When deploying the CloudFormation template, I get an error `Embedded stack arn:aws:cloudformation...  was not successfully created: The following resource(s) failed to create: [AWSServiceRoleForEC2SpotFleetServiceLinkedRole]`. How can I fix this?
 
@@ -146,12 +145,12 @@ This can happen if the service role has already been created in a previous deplo
 
 -----
 
-## 7. Security
+## 9. Security
 
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
 
 -----
 
-## 8. License
+## 10. License
 
 This project is licensed under the Apache-2.0 License.
