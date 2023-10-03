@@ -27,6 +27,8 @@ To restrict the GenAI application responses to company data only, we need to use
 Detailed benifits of RAG implementation are published in this popular blog [Quickly build high-accuracy Generative AI applications on enterprise data using Amazon Kendra, LangChain, and large language models](https://aws.amazon.com/blogs/machine-learning/quickly-build-high-accuracy-generative-ai-applications-on-enterprise-data-using-amazon-kendra-langchain-and-large-language-models/), 
 and it has some of the code sample too in this [GitHub](https://github.com/aws-samples/amazon-kendra-langchain-extensions/tree/main/kendra_retriever_samples) repository, 
 
+
+
 In this particular repository we are goint to provide implementation details to deploy a  serverless chatbot which can scale to sver lauser 
 maintain conversational memory 
 provide detaisl links
@@ -65,6 +67,17 @@ The workflow includes the following steps:
 10. The LangChain orchestrator gets the result from the LLM and sends it to the end-user through the Amazon Lex chatbot.
 
 ## 3. Disclaimer
+1. When selecting websites to index, you must adhere to the Amazon Acceptable Use Policy and all other Amazon terms. Remember that you must only use Amazon Kendra Web Crawler to index your own web pages, or web pages that you have authorization to index. To learn how to stop Amazon Kendra Web Crawler from indexing your website(s), please see Configuring the robots.txt file for Amazon Kendra Web Crawler.
+Abusing Amazon Kendra Web Crawler to aggressively crawl websites or web pages you don't own is not considered acceptable use.
+
+    Acceptable usage Policy : 
+    https://docs.aws.amazon.com/kendra/latest/dg/data-source-web-crawler.html
+    https://github.com/aws-samples/aws-lex-web-ui/tree/master
+
+2. If you are using Lex Web UI always secure your chat UI with Authentication by setting .
+![Cognito](assets/pic/cognito.PNG?raw=true "Cognito")
+
+
 
 ## 4. Prerequisites
 You need the following to be installed on your local machine to access the EKS cluster and 
@@ -116,10 +129,9 @@ Web UI
 
 ### 6.1. Optional CloudFormation Parameters
 
-- Pick and choos ethe kendra index developer edition and enterprise edition 
+- Pick and choos ethe kendra index developer edition and enterprise edition
 - Pick and choose the LLM
- Select "N" for **LaunchSageMakerNotebook** if you do not want to launch a managed sagemaker notebook instance to quickly run the provided Jupyter notebook. This option will avoid the [charges associated with running that notebook instance](https://aws.amazon.com/sagemaker/pricing/).
-
+ 
 ### 5.3. Clean Up
 
 To remove the stack and stop further charges, first select the root stack from the CloudFormation console and then the **Delete** button. This will remove all resources EXCEPT for the S3 bucket containing job data . 
