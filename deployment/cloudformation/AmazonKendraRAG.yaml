@@ -49,10 +49,11 @@ Mappings:
       Image : amazonaws.com/pytorch-inference:1.12.0-gpu-py38
     FALCON:
       LambdaCodeS3Bucket : personalize-solution-staging-us-east-1
-      LambdaCodeS3Key : kendra-RAG/simple_lambda_orchestrator.zip
+      LambdaCodeS3Key : kendra-RAG/lambda_orchestrator_falcon.zip
       LangChainLayerS3Bucket: personalize-solution-staging-us-east-1
       LangChainLayerS3Key : kendra-RAG/LangChainLayer.zip
       LambdaFunctionName : simple_lambda_orchestrator
+      LambdaHandlerPath : lambda_function.lambda_handler
       ModelName : 'falcon-7b-instruct-bf16'
       EndpointName : 'jumpstart-dft-hf-llm-falcon-7b'
       #ModelDataUrl : s3://jumpstart-cache-prod-${AWS::Region}/huggingface-infer/prepack/v1.0.1/infer-prepack-huggingface-text2text-flan-t5-xxl-bnb-int8.tar.gz
