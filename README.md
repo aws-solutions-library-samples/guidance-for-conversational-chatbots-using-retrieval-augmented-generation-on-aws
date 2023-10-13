@@ -77,7 +77,10 @@ Abusing Amazon Kendra Web Crawler to aggressively crawl websites or web pages yo
 2. If you are using Lex Web UI always secure your chat UI with Authentication by setting .
 ![Cognito](assets/pic/cognito.PNG?raw=true "Cognito")
 
+3. Place to help with this in case of RAG use case is to use lower number of max documents, say 1 because Huggingface has a smaller token limit.
+Apart from that, currently we expect the user to be responsible for the token limit per the model they select. But we're considering options like rolling window of conversation, so we removed old chat conversations from the history - this would then be an additional option in the rapid-ai wizard to select how many historical conversations you want to keep in memory. This would enable users to have longer conversations before the token limit creates issues. However this feature is not implemented yet..
 
+4. Please leverage encryption mechanism provided by the AWS for services meantioned in architecture.
 
 ## 4. Prerequisites
 You need the following to be installed on your local machine to access the EKS cluster and 
