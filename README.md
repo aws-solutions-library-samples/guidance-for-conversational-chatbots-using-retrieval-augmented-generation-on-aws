@@ -24,21 +24,8 @@ In this implementation we demonstrate how to implement a RAG workflow by combini
 
 To restrict the GenAI application responses to company data only, we need to use a technique called Retrieval Augmented Generation (RAG). An application using the RAG approach retrieves information most relevant to the user’s request from the enterprise knowledge base or content, bundles it as context along with the user’s request as a prompt, and then sends it to the LLM to get a GenAI response. LLMs have limitations around the maximum word count for the input prompt, therefore choosing the right passages among thousands or millions of documents in the enterprise, has a direct impact on the LLM’s accuracy.
 
-Detailed benifits of RAG implementation are published in this popular blog [Quickly build high-accuracy Generative AI applications on enterprise data using Amazon Kendra, LangChain, and large language models](https://aws.amazon.com/blogs/machine-learning/quickly-build-high-accuracy-generative-ai-applications-on-enterprise-data-using-amazon-kendra-langchain-and-large-language-models/), 
-and it has some of the code sample too in this [GitHub](https://github.com/aws-samples/amazon-kendra-langchain-extensions/tree/main/kendra_retriever_samples) repository, 
 
-
-
-In this particular repository we are goint to provide implementation details to deploy a  serverless chatbot which can scale to sver lauser 
-maintain conversational memory 
-provide detaisl links
-provide variety of orchestrator and also provides multiple ways Lmbda implementation 
-simple implementatioa and Advanced Agents implemetaion
-1. Query rehrasing or disambiguation
-This repository includes the CloudFormation template, Lambda Orchestrators and reference to Chat UI.
-2. remember previous conversation
-ability to decide whether to call rag or other 
-
+In this particular repository we are goint to provide implementation details to deploy a  serverless chatbot which can scale to several user s ,maintain conversational memory ,provide detailed links, provide variety of orchestrator and also provides multiple ways  of Lambda implementation; simple and Advanced Agents implemetation ,Query rehrasing or disambiguation
 -----
 
 ## 2. Architecture Details
@@ -50,7 +37,7 @@ The workflow includes the following steps:
 
 2. The LLM is hosted on a SageMaker endpoint.
 
-3. An Amazon Lex chatbot is used to interact with the user via the Amazon Lex web UI.
+3. An Amazon Lex chatbot is used to interact with the user via the Amazon Lex web UI. Lex UI can leverage cognito to authentice users.
 
 4. The Amazon DynamoDB is used to hold conversational memory.
 
@@ -90,10 +77,7 @@ On the AWS account that you will be deploying this kit you will need an IAM User
 Administrator and Programmatic access
 
 - Infrastructure to deploy the model: 
-    - [g2],
-    - [g24],
-    - [g48] for Falcon , 
-    - Please raise service request to increase quota
+
 - Access to deploy your own API if you choose to go down that route
 
 - Ability to attach Layers to Lambda 
@@ -127,7 +111,6 @@ Web UI
 
 ### 6.1. Optional CloudFormation Parameters
 
-- Pick and choos ethe kendra index developer edition and enterprise edition
 - Pick and choose the LLM
  
 ### 5.3. Clean Up
@@ -149,9 +132,6 @@ Please visit [amazon-kendra-langchain-extensions Public
 
 ## 8. FAQ
 
-Q: When deploying the CloudFormation template, I get an error `Embedded stack arn:aws:cloudformation...  was not successfully created: The following resource(s) failed to create: [AWSServiceRoleForEC2SpotFleetServiceLinkedRole]`. How can I fix this?
-
-This can happen if the service role has already been created in a previous deployment. Try deleting the `AWSServiceRoleForEC2SpotFleetServiceLinkedRole` in the IAM console and redeploy the Cloud Formation template.
 
 -----
 
