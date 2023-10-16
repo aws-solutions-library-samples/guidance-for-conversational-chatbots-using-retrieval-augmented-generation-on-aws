@@ -25,7 +25,7 @@ In this implementation we demonstrate how to implement a RAG workflow by combini
 To restrict the GenAI application responses to company data only, we need to use a technique called Retrieval Augmented Generation (RAG). An application using the RAG approach retrieves information most relevant to the user’s request from the enterprise knowledge base or content, bundles it as context along with the user’s request as a prompt, and then sends it to the LLM to get a GenAI response. LLMs have limitations around the maximum word count for the input prompt, therefore choosing the right passages among thousands or millions of documents in the enterprise, has a direct impact on the LLM’s accuracy.
 
 
-In this particular repository we are goint to provide implementation details to deploy a  serverless chatbot which can scale to several user s ,maintain conversational memory ,provide detailed links, provide variety of orchestrator and also provides multiple ways  of Lambda implementation; simple and Advanced Agents implemetation ,Query rehrasing or disambiguation
+In this particular repository we are going to provide implementation details to deploy a serverless chatbot which can scale to several users, maintain conversational memory, provide detailed links, variety of orchestrators and also provides multiple ways of Lambda implementation; simple and Advanced Agents implemetation, Query rephrasing or disambiguation
 -----
 
 ## 2. Architecture Details
