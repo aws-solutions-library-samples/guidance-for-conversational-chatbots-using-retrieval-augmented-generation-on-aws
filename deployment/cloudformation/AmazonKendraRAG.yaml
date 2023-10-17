@@ -10,7 +10,7 @@
 ##Hence you might need to wait for about 45 minutes after launching the CloudFormation stack
 
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Template Amazon Kendra RAG.
+Description: SO9310 - Guidance for Conversational Chatbots Using Retrieval Augmented Generation (RAG) on AWS
 Parameters:
   LLMModelSelected:
     Description: Pick the LLM model (FLAN,FALCON) to deploy and use for the chatbot.
