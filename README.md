@@ -71,12 +71,12 @@ Apart from that, currently we expect the user to be responsible for the token li
 
 Here are the links that provide more information about protecting data in the services used:
 
-[Amazon DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/data-protection.html)
-[Amazon Cloudfront](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/data-protection-summary.html)
-[Amazon Lex](https://docs.aws.amazon.com/lexv2/latest/dg/data-protection.html)
-[Amazon SageMaker](https://docs.aws.amazon.com/sagemaker/latest/dg/data-protection.html)
-[AWS Lambda](https://docs.aws.amazon.com/lambda/latest/dg/security-dataprotection.html)
-[Amazon Kendra](https://docs.aws.amazon.com/kendra/latest/dg/data-protection.html)
+[Amazon DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/data-protection.html),
+[Amazon Cloudfront](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/data-protection-summary.html),
+[Amazon Lex](https://docs.aws.amazon.com/lexv2/latest/dg/data-protection.html),
+[Amazon SageMaker](https://docs.aws.amazon.com/sagemaker/latest/dg/data-protection.html),
+[AWS Lambda](https://docs.aws.amazon.com/lambda/latest/dg/security-dataprotection.html),
+[Amazon Kendra](https://docs.aws.amazon.com/kendra/latest/dg/data-protection.html).
 
 
 ## 4. Prerequisites
