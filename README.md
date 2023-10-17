@@ -68,14 +68,16 @@ Abusing Amazon Kendra Web Crawler to aggressively crawl websites or web pages yo
 Apart from that, currently we expect the user to be responsible for the token limit per the model they select. But we're considering options like rolling window of conversation, so we removed old chat conversations from the history - this would then be an additional option in the rapid-ai wizard to select how many historical conversations you want to keep in memory. This would enable users to have longer conversations before the token limit creates issues. However this feature is not implemented yet..
 
 4. Please leverage encryption mechanism provided by the AWS for services meantioned in architecture.
-Here are the links that provide more information about protecting data in the services used.
 
- Amazon Dynamodb: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/data-protection.html
- Amazon Cloudfront: https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/data-protection-summary.html
- Amazon Lex: https://docs.aws.amazon.com/lexv2/latest/dg/data-protection.html
- Amazon SageMaker: https://docs.aws.amazon.com/sagemaker/latest/dg/data-protection.html
- AWS Lambda: https://docs.aws.amazon.com/lambda/latest/dg/security-dataprotection.html
- Amazon Kendra: https://docs.aws.amazon.com/kendra/latest/dg/data-protection.html
+Here are the links that provide more information about protecting data in the services used:
+
+[Amazon DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/data-protection.html)
+[Amazon Cloudfront](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/data-protection-summary.html)
+[Amazon Lex](https://docs.aws.amazon.com/lexv2/latest/dg/data-protection.html)
+[Amazon SageMaker](https://docs.aws.amazon.com/sagemaker/latest/dg/data-protection.html)
+[AWS Lambda](https://docs.aws.amazon.com/lambda/latest/dg/security-dataprotection.html)
+[Amazon Kendra](https://docs.aws.amazon.com/kendra/latest/dg/data-protection.html)
+
 
 ## 4. Prerequisites
 You need the following to be installed on your local machine to access the EKS cluster and 
