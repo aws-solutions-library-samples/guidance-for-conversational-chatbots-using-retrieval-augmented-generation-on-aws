@@ -106,11 +106,11 @@ These are the currently supported regions. Click a button to launch it in the de
 
 
 2. For **Stack Name**, enter a value unique to your account and region. 
-    ![Provide a stack name](assets/pic/StackName.png)  
+    ![Provide a stack name](assets/pic/StackName.PNG)  
 3. Pick and choose the parameters ,Leave the other parameters as their default values and select **Next**.  
-![Pick parameters such as LLM, Kendra Index](assets/pic/CloudformationParameter.png)  
+![Pick parameters such as LLM, Kendra Index](assets/pic/CloudformationParameter.PNG)  
 4. Select **I acknowledge that AWS CloudFormation might create IAM resources with custom names**.  
-![Provide a stack name](assets/pic/IAgree.png)  
+![Provide a stack name](assets/pic/IAgree.PNG)  
 5. Wait 20 minutes for AWS CloudFormation to create the necessary infrastructure stack and module containers.  
 
 Web UI
