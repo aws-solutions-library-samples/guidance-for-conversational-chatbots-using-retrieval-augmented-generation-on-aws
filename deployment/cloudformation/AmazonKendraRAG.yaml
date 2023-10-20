@@ -10,15 +10,15 @@
 ##Hence you might need to wait for about 45 minutes after launching the CloudFormation stack
 
 AWSTemplateFormatVersion: '2010-09-09'
-Description: SO9310 - Guidance for Conversational Chatbots Using Retrieval Augmented Generation (RAG) on AWS
+Description: Template Amazon Kendra RAG.
 Parameters:
   LLMModelSelected:
-    Description: Pick the LLM model (FLAN,FALCON) to deploy and use for the chatbot.
+    Description: Pick the LLM model (FLAN Models) to deploy and use for the chatbot.
     Type: String
-    Default: FLAN
+    Default: FLAN-T5-XXL
     AllowedValues:
-      - FLAN
-      - FALCON
+      - FLAN-T5-XXL
+      - FLAN-T5-XL
   LambdaIAMRoleName:
     Default: LambdaLLMIAMRole
     Type: String
@@ -34,7 +34,7 @@ Parameters:
 
 Mappings:
   ModelMap:
-    FLAN:
+    FLAN-T5-XXL:
       LambdaCodeS3Bucket : personalize-solution-staging-us-east-1
       LambdaCodeS3Key : kendra-RAG/simple_lambda_orchestrator.zip
       LangChainLayerS3Bucket: personalize-solution-staging-us-east-1
@@ -47,19 +47,19 @@ Mappings:
       ModelDataUrl : huggingface-infer/prepack/v1.0.1/infer-prepack-huggingface-text2text-flan-t5-xxl-bnb-int8.tar.gz
       #Image : 763104351884.dkr.ecr.${AWS::Region}.amazonaws.com/pytorch-inference:1.12.0-gpu-py38
       Image : amazonaws.com/pytorch-inference:1.12.0-gpu-py38
-    FALCON:
+    FLAN-T5-XL:
       LambdaCodeS3Bucket : personalize-solution-staging-us-east-1
-      LambdaCodeS3Key : kendra-RAG/lambda_orchestrator_falcon.zip
+      LambdaCodeS3Key : kendra-RAG/simple_lambda_orchestrator.zip
       LangChainLayerS3Bucket: personalize-solution-staging-us-east-1
       LangChainLayerS3Key : kendra-RAG/LangChainLayer.zip
       LambdaFunctionName : simple_lambda_orchestrator
       LambdaHandlerPath : lambda_function.lambda_handler
-      ModelName : 'falcon-7b-instruct-bf16'
-      EndpointName : 'jumpstart-dft-hf-llm-falcon-7b'
+      ModelName : 'flan-t5-xl-model'
+      EndpointName : 'flan-t5-xl-endpoint'
       #ModelDataUrl : s3://jumpstart-cache-prod-${AWS::Region}/huggingface-infer/prepack/v1.0.1/infer-prepack-huggingface-text2text-flan-t5-xxl-bnb-int8.tar.gz
-      ModelDataUrl : huggingface-infer/prepack/v1.0.0/infer-prepack-huggingface-llm-falcon-7b-instruct-bf16.tar.gz
+      ModelDataUrl : huggingface-infer/prepack/v1.0.0/infer-prepack-huggingface-text2text-flan-t5-xl.tar.gz
       #Image : 763104351884.dkr.ecr.${AWS::Region}.amazonaws.com/huggingface-pytorch-tgi-inference:2.0.0-tgi0.8.2-gpu-py39-cu118-ubuntu20.04
-      Image : amazonaws.com/huggingface-pytorch-tgi-inference:2.0.0-tgi0.8.2-gpu-py39-cu118-ubuntu20.04
+      Image : amazonaws.com/pytorch-inference:1.12.0-gpu-py38
 
 Resources:
   # Create the Role needed to create a Kendra Index
@@ -285,10 +285,9 @@ Resources:
             - Effect: Allow
               Action:
                 - sagemaker:InvokeEndpoint
-              Resource: !Sub
-                - "arn:aws:sagemaker:${region}:${account}:endpoint/flan-t5-xxl-endpoint"
-                - region: !Ref 'AWS::Region'
-                  account: !Ref 'AWS::AccountId'
+              Resource:
+                - !Sub "arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:endpoint/flan-t5-xxl-endpoint"
+                - !Sub "arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:endpoint/flan-t5-xl-endpoint"
             - Effect: Allow
               Action:
                 - kendra:BatchQuery
@@ -549,5 +548,3 @@ Outputs:
   ConversationHistoryTable:
     Description: Table name of the newly created Conversational Memory DynamoDB 
     Value: !Ref ConversationHistory
-
-
