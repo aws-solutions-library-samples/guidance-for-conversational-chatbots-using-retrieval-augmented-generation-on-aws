@@ -10,8 +10,7 @@
 6. [Advanced Configuration](#6-advanced-configuration)  
     6.1. [Optional CloudFormation Parameters](#61-optional-cloudformation-parameters)      
 7. [Module Information](#7-module-information)  
-    7.1 [LangChain](#71-langChain)
-    7.2 [Cloudfront](#72-cloudfront)
+    7.1 [LangChain Orchestrator](#71-langChain-orchestrator)
 8. [FAQ](#8-faq)
 9. [Security](#9-security)
 10. [License](#10-license)
@@ -20,12 +19,9 @@
 
 ## 1. Overview
 
-In this implementation we demonstrate how to implement a RAG workflow by combining the capabilities of Amazon Kendra with LLMs to create state-of-the-art GenAI ChatBot providing conversational experiences over your enterprise content. 
+In this implementation we demonstrate how to implement a RAG workflow by combining the capabilities of Amazon Kendra with LLMs to create state-of-the-art GenAI ChatBot providing conversational experiences over your enterprise content. To restrict the GenAI application responses to company data , we need to use a technique called Retrieval Augmented Generation (RAG). An application using the RAG approach retrieves information most relevant to the user’s request from the enterprise knowledge base or content, bundles it as context along with the user’s request as a prompt, and then sends it to the LLM to get a GenAI response. LLMs have limitations around the maximum word count for the input prompt, therefore choosing the right passages among thousands or millions of documents in the enterprise, has a direct impact on the LLM’s accuracy.
+In this particular repository we are going to provide implementation details to deploy a serverless chatbot which can scale to several users, maintain conversational memory, provide source links, has variety of orchestrators which provide multiple ways of Lambda implementation; Simple and Advanced Agents Lambda implemetation with Query rephrasing or disambiguation
 
-To restrict the GenAI application responses to company data only, we need to use a technique called Retrieval Augmented Generation (RAG). An application using the RAG approach retrieves information most relevant to the user’s request from the enterprise knowledge base or content, bundles it as context along with the user’s request as a prompt, and then sends it to the LLM to get a GenAI response. LLMs have limitations around the maximum word count for the input prompt, therefore choosing the right passages among thousands or millions of documents in the enterprise, has a direct impact on the LLM’s accuracy.
-
-
-In this particular repository we are going to provide implementation details to deploy a serverless chatbot which can scale to several users, maintain conversational memory, provide detailed links, variety of orchestrators and also provides multiple ways of Lambda implementation; simple and Advanced Agents implemetation, Query rephrasing or disambiguation
 -----
 
 ## 2. Architecture Details
@@ -122,8 +118,9 @@ Web UI
 ### 6.1. Optional CloudFormation Parameters
 
 - Pick and choose the LLM
+![Pick and choose the LLM](assets/pic/LLMoptions.PNG)  
  
-### 5.3. Clean Up
+### 6.2. Clean Up
 
 To remove the stack and stop further charges, first select the root stack from the CloudFormation console and then the **Delete** button. This will remove all resources EXCEPT for the S3 bucket containing job data . 
 
@@ -133,12 +130,13 @@ To remove all remaining data, browse to the S3 console and delete the S3 bucket 
 
 ## 7. Module Information
 
-### 6.1. LangChain
+### 7.1. LangChain Orchestrator
+Lambda Orchestrator holds the intelligence to co-ordinate tasks across LLM and Kendra Retriever.
+- Simple LangChain Orchestrator : Here, Questions from users will be directly passed on to the Kendra Retriever, and results along with question from Kendra Retriever are fed into LLM . Later LLM's results are sent to End User. 
 
-Please visit [amazon-kendra-langchain-extensions Public
-](https://github.com/aws-samples/amazon-kendra-langchain-extensions ) for more information about the JackHMMER algorithm.
+- Advanced LangChain Orchestrator with LangChain Agents : Kendra will be provided as tool for Langchian Agents ([Kendra Tool](source/lambda_orchestrator_Anthropic/tools.py)). Please read through [LangChain Agents](https://python.langchain.com/docs/modules/agents/) documentation to learn more. 
+Agents Implementation is made avaialbe for Anthropic Claud and LLAMA2 in this repository.
 
-(https://python.langchain.com/docs/modules/data_connection/retrievers/integrations/amazon_kendra_retriever)
 
 ## 8. FAQ
 
