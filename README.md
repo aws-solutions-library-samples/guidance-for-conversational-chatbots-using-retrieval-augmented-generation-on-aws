@@ -102,7 +102,7 @@ These are the currently supported regions. Click a button to launch it in the de
 
 | Region   |  Launch | CloudFormation Template|
 |----------|:-------------:|------------------|
-| Northern Virginia | <a target="_blank" href="https://us-east-1.console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/create/review?templateURL=s3://personalize-solution-staging-us-east-1/kendra-RAG/AmazonKendraRAG.yaml&stackName=conversational-Bot-RAG"><span><img height="24px" src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png"/></span></a>     |[us-east-1](s3://personalize-solution-staging-us-east-1/kendra-RAG/AmazonKendraRAG.yaml)|
+| Northern Virginia | <a target="_blank" href="https://us-east-1.console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/create/review?templateURL=https://personalize-solution-staging-us-east-1.s3.amazonaws.com/kendra-RAG/AmazonKendraRAG.yaml&stackName=conversational-Bot-RAG"><span><img height="24px" src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png"/></span></a>     |[us-east-1](https://personalize-solution-staging-us-east-1.s3.amazonaws.com/kendra-RAG/AmazonKendraRAG.yaml)|
 
 
 2. For **Stack Name**, enter a value unique to your account and region. 
