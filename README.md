@@ -107,9 +107,10 @@ These are the currently supported regions. Click a button to launch it in the de
 ![Pick parameters such as LLM, Kendra Index](assets/pic/CloudformationParameter.PNG)  
 4. Select **I acknowledge that AWS CloudFormation might create IAM resources with custom names**.  
 ![Provide a stack name](assets/pic/IAgree.PNG)  
-5. Wait 20 minutes for AWS CloudFormation to create the necessary infrastructure stack and module containers.  
+5. Wait for ~20 minutes for AWS CloudFormation to create the necessary infrastructure stack and module containers.  
 
-Web UI
+6. After succesfull execution of previous step, deploy and configure [Lex Web UI](https://github.com/aws-samples/aws-lex-web-ui) with 'LexV2BotId' & 'LexV2BotAliasId' information from final results of RAG Chatbot(deployed in Step 5) and enable Cognito authentication.
+![Provide a LexV2BotId & LexV2BotAliasId](assets/pic/ConfigureLexWebUI.PNG)  
 
 -----
 
